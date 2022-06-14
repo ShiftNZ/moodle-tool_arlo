@@ -49,8 +49,9 @@ class sync_contact_organisation extends scheduled_task {
     public function execute() {
         global $DB, $CFG;
         require_once("{$CFG->dirroot}/user/lib.php");
+
         // Todo: Use sourcemodified and a setting that stores the last sync and only process contacts modified after that.
-        if ($arlousers = $DB->get_records('enrol_arlo_contact')) {
+        if (enrol_is_enabled('arlo') && $arlousers = $DB->get_records('enrol_arlo_contact')) {
             $arlopluginconfig = new \enrol_arlo\local\config\arlo_plugin_config();
             $arloclient = \enrol_arlo\local\client::get_instance();
             $arlorequesturi = new \enrol_arlo\Arlo\AuthAPI\RequestUri();
