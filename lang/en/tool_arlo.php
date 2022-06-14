@@ -17,7 +17,7 @@
 /**
  * English language strings for Arlo admin tool.
  *
- * @package     Arlo admin tool
+ * @package     tool_arlo
  * @author      Donald Barrett <donaldb@skills.org.nz>
  * @copyright   2022 onwards, Skills Consulting Group Ltd
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
