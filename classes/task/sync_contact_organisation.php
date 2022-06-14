@@ -49,36 +49,35 @@ class sync_contact_organisation extends scheduled_task {
     public function execute() {
         global $DB, $CFG;
         require_once("{$CFG->dirroot}/user/lib.php");
+        // Todo: Use sourcemodified and a setting that stores the last sync and only process contacts modified after that.
+        if ($arlousers = $DB->get_records('enrol_arlo_contact')) {
+            $arlopluginconfig = new \enrol_arlo\local\config\arlo_plugin_config();
+            $arloclient = \enrol_arlo\local\client::get_instance();
+            $arlorequesturi = new \enrol_arlo\Arlo\AuthAPI\RequestUri();
+            $arlorequesturi->setHost($arlopluginconfig->get('platform'));
 
-        // Get the arlo users.
-        $arlousers = $DB->get_records('enrol_arlo_contact');
-
-        $arlopluginconfig = new \enrol_arlo\local\config\arlo_plugin_config();
-        $arloclient = \enrol_arlo\local\client::get_instance();
-        $arlorequesturi = new \enrol_arlo\Arlo\AuthAPI\RequestUri();
-        $arlorequesturi->setHost($arlopluginconfig->get('platform'));
-
-        foreach ($arlousers as $arlouser) {
-            $arlorequesturi->setResourcePath("contacts/{$arlouser->sourceid}/employment");
-            $arlorequesturi->addExpand('Organisation');
-            $request = new \GuzzleHttp\Psr7\Request('GET', $arlorequesturi->output(true));
-            $response = $arloclient->send_request($request);
-            try {
-                /** @var \enrol_arlo\Arlo\AuthAPI\Resource\Contact $arlocontact Arlo contact */
-                $arlocontact = \enrol_arlo\local\response_processor::process($response);
-                if (empty($arlocontact->Organisation->Name) && empty($arlocontact->Organisation->LegalName)) {
-                    throw new moodle_exception('httpstatus:204', 'tool_arlo');
+            foreach ($arlousers as $arlouser) {
+                $arlorequesturi->setResourcePath("contacts/{$arlouser->sourceid}/employment");
+                $arlorequesturi->addExpand('Organisation');
+                $request = new \GuzzleHttp\Psr7\Request('GET', $arlorequesturi->output(true));
+                $response = $arloclient->send_request($request);
+                try {
+                    /** @var \enrol_arlo\Arlo\AuthAPI\Resource\Contact $arlocontact Arlo contact */
+                    $arlocontact = \enrol_arlo\local\response_processor::process($response);
+                    if (empty($arlocontact->Organisation->Name) && empty($arlocontact->Organisation->LegalName)) {
+                        throw new moodle_exception('httpstatus:204', 'tool_arlo');
+                    }
+                    $user = core_user::get_user($arlouser->userid);
+                    $organisationname = $arlocontact->Organisation->Name ?? $arlocontact->Organisation->LegalName;
+                    if (core_text::strtolower($user->institution) === core_text::strtolower($organisationname)) {
+                        // Same.
+                    } else {
+                        $user->institution = $organisationname;
+                        user_update_user($user, false);
+                    }
+                } catch (moodle_exception $exception) {
+                    // Ignore. This user must not have an organisation.
                 }
-                $user = core_user::get_user($arlouser->userid);
-                $organisationname = $arlocontact->Organisation->Name ?? $arlocontact->Organisation->LegalName;
-                if (core_text::strtolower($user->institution) === core_text::strtolower($organisationname)) {
-                    // Same.
-                } else {
-                    $user->institution = $organisationname;
-                    user_update_user($user, false);
-                }
-            } catch (moodle_exception $exception) {
-                // Ignore. This user must not have stuff.
             }
         }
     }
