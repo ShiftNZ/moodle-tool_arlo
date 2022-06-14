@@ -31,3 +31,5 @@ $string['pluginname'] = 'Arlo admin tool';
 $string['privacy:metadata:core_user'] = 'The Arlo admin tool stores the name of a Contact\'s organisation to the core user \'institution\' field';
 $string['taskname:sync_contact_organisation'] = 'Sync Arlo contact organisation';
 $string['httpstatus:204'] = 'No Content';
+$string['contactorganisation_updated'] = 'Contact \'{$a->contact}\' organisation set to \'{$a->organisation}\' using the moodle user field \'{$a->field}\'';
+$string['contactorganisation_nochange'] = 'No change in contact \'{$a->contact}\' organisation \'{$a->organisation}\' in the moodle user field \'{$a->field}\'';

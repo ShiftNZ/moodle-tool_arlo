@@ -31,7 +31,11 @@ use lang_string;
 use core\task\scheduled_task;
 use core_user;
 use core_text;
+use text_progress_trace;
 
+/**
+ * Class for sync contact organisation scheduled task.
+ */
 class sync_contact_organisation extends scheduled_task {
     /**
      * Return a localised name of the task.
@@ -49,6 +53,7 @@ class sync_contact_organisation extends scheduled_task {
     public function execute() {
         global $DB, $CFG;
         require_once("{$CFG->dirroot}/user/lib.php");
+        $trace = new text_progress_trace();
 
         // Todo: Use sourcemodified and a setting that stores the last sync and only process contacts modified after that.
         if (enrol_is_enabled('arlo') && $arlousers = $DB->get_records('enrol_arlo_contact')) {
@@ -63,21 +68,27 @@ class sync_contact_organisation extends scheduled_task {
                 $request = new \GuzzleHttp\Psr7\Request('GET', $arlorequesturi->output(true));
                 $response = $arloclient->send_request($request);
                 try {
-                    /** @var \enrol_arlo\Arlo\AuthAPI\Resource\Contact $arlocontact Arlo contact */
                     $arlocontact = \enrol_arlo\local\response_processor::process($response);
                     if (empty($arlocontact->Organisation->Name) && empty($arlocontact->Organisation->LegalName)) {
                         throw new moodle_exception('httpstatus:204', 'tool_arlo');
                     }
                     $user = core_user::get_user($arlouser->userid);
                     $organisationname = $arlocontact->Organisation->Name ?? $arlocontact->Organisation->LegalName;
+                    $a = [
+                        'contact' => fullname($arlouser),
+                        'organisation' => $organisationname,
+                        'field' => 'institution'
+                    ];
                     if (core_text::strtolower($user->institution) === core_text::strtolower($organisationname)) {
-                        // Same.
-                    } else {
-                        $user->institution = $organisationname;
-                        user_update_user($user, false);
+                        $trace->output(get_string('contactorganisation_nochange', $a));
+                        continue;
                     }
+                    $user->institution = $organisationname;
+                    user_update_user($user, false);
+                    $trace->output(get_string('contactorganisation_updated', 'tool_arlo', $a));
                 } catch (moodle_exception $exception) {
                     // Ignore. This user must not have an organisation.
+                    continue;
                 }
             }
         }

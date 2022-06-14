@@ -25,15 +25,18 @@
 
 namespace tool_arlo\privacy;
 
-// No direct access.
 use core_privacy\local\metadata\collection;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Privacy provider.
  */
 class provider implements \core_privacy\local\metadata\provider {
+    /**
+     * Returns metadata about this system.
+     *
+     * @param collection $collection The initialised collection to add items to.
+     * @return collection
+     */
     public static function get_metadata(collection $collection) : collection {
         $collection->add_subsystem_link('core_user', [], 'privacy:metadata:core_user');
         return $collection;
