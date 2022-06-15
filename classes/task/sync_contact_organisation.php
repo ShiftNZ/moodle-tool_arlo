@@ -75,12 +75,12 @@ class sync_contact_organisation extends scheduled_task {
                     $user = core_user::get_user($arlouser->userid);
                     $organisationname = $arlocontact->Organisation->Name ?? $arlocontact->Organisation->LegalName;
                     $a = [
-                        'contact' => fullname($arlouser),
+                        'contact' => fullname($user),
                         'organisation' => $organisationname,
                         'field' => 'institution'
                     ];
                     if (core_text::strtolower($user->institution) === core_text::strtolower($organisationname)) {
-                        $trace->output(get_string('contactorganisation_nochange', $a));
+                        $trace->output(get_string('contactorganisation_nochange', 'tool_arlo', $a));
                         continue;
                     }
                     $user->institution = $organisationname;
