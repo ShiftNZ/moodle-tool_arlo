@@ -26,6 +26,7 @@
 namespace tool_arlo\task;
 
 use coding_exception;
+use enrol_arlo\Arlo\AuthAPI\Exception\XMLDeserializerException;
 use moodle_exception;
 use lang_string;
 use core\task\scheduled_task;
@@ -88,7 +89,13 @@ class sync_contact_organisation extends scheduled_task {
                     $trace->output(get_string('contactorganisation_updated', 'tool_arlo', $a));
                 } catch (moodle_exception $exception) {
                     // Ignore. This user must not have an organisation.
-                    continue;
+                    $user = core_user::get_user($arlouser->id);
+                    if ($exception->getMessage() == 'error/httpstatus:404') {
+                        $trace->output(get_string('contactorganisation_notfound', 'tool_arlo', fullname($user)));
+                    }
+                } catch (XMLDeserializerException $exception) {
+                    // The root class ContactEmployment does not exist. This will need to be implemented in enrol_arlo.
+                    $trace->output($exception->getMessage());
                 }
             }
         }

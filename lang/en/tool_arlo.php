@@ -33,3 +33,4 @@ $string['taskname:sync_contact_organisation'] = 'Sync Arlo contact organisation'
 $string['httpstatus:204'] = 'No Content';
 $string['contactorganisation_updated'] = 'Contact \'{$a->contact}\' organisation set to \'{$a->organisation}\' using the moodle user field \'{$a->field}\'';
 $string['contactorganisation_nochange'] = 'No change in contact \'{$a->contact}\' organisation \'{$a->organisation}\' in the moodle user field \'{$a->field}\'';
+$string['contactorganisation_notfound'] = 'Contact {$a} does not have any employment details in Arlo.';
